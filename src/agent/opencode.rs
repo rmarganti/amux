@@ -123,11 +123,8 @@ fn status_dir() -> std::path::PathBuf {
 /// older than 30 s with no matching live PID). Stale files are cleaned up.
 fn read_status_file(pane_id: &str) -> Option<AgentStatus> {
     let path = status_dir().join(format!("{pane_id}.json"));
-    eprintln!("Checking for status file at {:?}", path);
-
     let contents = std::fs::read_to_string(&path).ok()?;
     let file: StatusFile = serde_json::from_str(&contents).ok()?;
-    eprintln!("Read status file: {:?}", file);
 
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)

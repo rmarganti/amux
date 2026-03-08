@@ -1,7 +1,8 @@
 pub mod list;
+pub mod setup;
 pub mod status;
 
-use clap::Parser;
+use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 #[command(name = "amux", about = "Manage and monitor AI coding agents in tmux")]
@@ -10,10 +11,21 @@ pub struct Cli {
     pub command: Command,
 }
 
-#[derive(Parser)]
+#[derive(Subcommand)]
 pub enum Command {
     /// Scan tmux panes for agents and select one via fzf
     List,
+    /// Install agent plugins and configure integrations
+    Setup {
+        #[command(subcommand)]
+        target: SetupTarget,
+    },
     /// Output a terse status string for tmux statusline interpolation
     Status,
+}
+
+#[derive(Subcommand)]
+pub enum SetupTarget {
+    /// Install the amux status plugin for OpenCode
+    Opencode,
 }

@@ -11,12 +11,14 @@ pub enum AmuxError {
     #[error("tmux error: {0}")]
     Tmux(String),
 
-    #[error("agent provider error: {0}")]
-    Provider(String),
-
+    // #[error("agent provider error: {0}")]
+    // Provider(String),
     #[error("fzf exited without a selection")]
     FzfNoSelection,
 
     #[error("fzf error: {0}")]
     Fzf(String),
+
+    #[error("setup error: {0}")]
+    Setup(String),
 }

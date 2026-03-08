@@ -38,6 +38,18 @@ Indicators: `●` running, `○` idle, `⚠` awaiting input, `✖` errored.
 cargo install --path .
 ```
 
+## Agent Setup
+
+### OpenCode
+
+Install the status plugin so amux can monitor OpenCode instances:
+
+```sh
+amux setup opencode
+```
+
+This copies a lightweight plugin to `~/.config/opencode/plugin/` that reports agent status via the filesystem. Restart any running OpenCode instances after installing. See [docs/integrations/opencode.md](docs/integrations/opencode.md) for details.
+
 ## Tmux Integration
 
 Add to your `tmux.conf`:

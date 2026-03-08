@@ -1,0 +1,9 @@
+[package]
+name = "amux"
+version = "0.1.0"
+edition = "2024"
+description = "A CLI utility for managing and monitoring AI coding agents running in tmux panes"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+thiserror = "2"

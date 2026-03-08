@@ -22,13 +22,13 @@ impl AgentProvider for OpenCodeProvider {
                 continue;
             };
 
-            let port = match discover_port(oc_pid) {
-                Some(p) => p,
-                None => continue,
+            let status = match discover_port(oc_pid) {
+                Some(port) => {
+                    let cwd = process_cwd(oc_pid).unwrap_or_default();
+                    query_status(port, &cwd).unwrap_or(AgentStatus::Idle)
+                }
+                None => AgentStatus::Idle,
             };
-
-            let cwd = process_cwd(oc_pid).unwrap_or_default();
-            let status = query_status(port, &cwd).unwrap_or(AgentStatus::Idle);
 
             instances.push(AgentInstance {
                 pane: pane.clone(),

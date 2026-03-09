@@ -1,5 +1,5 @@
 pub mod list;
-pub mod setup;
+pub mod setup_opencode;
 pub mod status;
 
 use clap::{Parser, Subcommand};

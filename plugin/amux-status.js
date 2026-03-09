@@ -1,4 +1,4 @@
-// amux-status v1
+// amux-status v1.1
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
@@ -41,10 +41,14 @@ const Plugin = async ({ $, client }) => {
 
     return {
         event: async ({ event }) => {
-            log('debug', 'event received', { type: event.type, properties: event.properties });
+            log('debug', 'event received', {
+                type: event.type,
+                properties: event.properties,
+            });
 
             if (event.type === 'session.status') {
-                const status = event.properties.status?.type === 'busy' ? 'busy' : 'idle';
+                const status =
+                    event.properties.status?.type === 'busy' ? 'busy' : 'idle';
                 writeStatus(paneId, status);
                 log('info', 'status written', { paneId, status });
             }
@@ -53,9 +57,23 @@ const Plugin = async ({ $, client }) => {
                 writeStatus(paneId, 'errored');
                 log('info', 'error status written', { paneId });
             }
+
+            if (event.type === 'question.asked') {
+                writeStatus(paneId, 'awaiting_input');
+                log('info', 'awaiting_input status written (question asked)', {
+                    paneId,
+                });
+            }
+
+            if (event.type === 'question.replied') {
+                writeStatus(paneId, 'busy');
+                log('info', 'busy status written (question replied)', {
+                    paneId,
+                });
+            }
         },
 
-        'permission.ask': async (permission, output) => {
+        'permission.ask': async (_permission, output) => {
             if (output.status === 'ask') {
                 writeStatus(paneId, 'awaiting_input');
                 log('info', 'awaiting_input status written', { paneId });

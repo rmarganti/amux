@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use crate::error::AmuxError;
 
 const PLUGIN_CONTENT: &str = include_str!("../../plugin/amux-status.js");
-const VERSION_LINE: &str = "// amux-status v1";
+const VERSION_LINE: &str = "// amux-status v1.1";
 
 fn plugin_path() -> Result<PathBuf, AmuxError> {
     let config_dir = if let Ok(xdg) = std::env::var("XDG_CONFIG_HOME") {
@@ -14,7 +14,10 @@ fn plugin_path() -> Result<PathBuf, AmuxError> {
             .ok_or_else(|| AmuxError::Setup("could not determine home directory".to_string()))?
             .join(".config")
     };
-    Ok(config_dir.join("opencode").join("plugin").join("amux-status.js"))
+    Ok(config_dir
+        .join("opencode")
+        .join("plugin")
+        .join("amux-status.js"))
 }
 
 pub fn run() -> Result<(), AmuxError> {

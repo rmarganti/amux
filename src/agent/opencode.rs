@@ -34,7 +34,9 @@ impl AgentProvider for OpenCodeProvider {
     }
 }
 
-// ── Process tree walking ──────────────────────────────────────────────
+// ----------------------------------------------------------------
+// Process Tree Walking
+// ----------------------------------------------------------------
 
 /// Walk the process tree rooted at `root_pid` to find a child whose
 /// executable name starts with "opencode". Returns the PID if found.
@@ -90,7 +92,9 @@ fn is_opencode_process(pid: u32) -> bool {
     basename == "opencode" || basename.starts_with("opencode-")
 }
 
-// ── Status file reading ───────────────────────────────────────────────
+// ----------------------------------------------------------------
+// Status file reading
+// ----------------------------------------------------------------
 
 /// Status file written by the amux-status OpenCode plugin.
 #[derive(Debug, Deserialize)]

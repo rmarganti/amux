@@ -13,7 +13,7 @@ fn main() {
     let result = match cli.command {
         Command::List => cli::list::run(),
         Command::Setup { target } => match target {
-            cli::SetupTarget::Opencode => cli::setup::run(),
+            cli::SetupTarget::Opencode => cli::setup_opencode::run(),
         },
         Command::Status => cli::status::run(),
     };

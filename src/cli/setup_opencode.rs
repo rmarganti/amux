@@ -23,13 +23,12 @@ fn plugin_path() -> Result<PathBuf, AmuxError> {
 pub fn run() -> Result<(), AmuxError> {
     let path = plugin_path()?;
 
-    if let Ok(existing) = fs::read_to_string(&path) {
-        if let Some(first_line) = existing.lines().next() {
-            if first_line == VERSION_LINE {
-                println!("Plugin already up to date.");
-                return Ok(());
-            }
-        }
+    if let Ok(existing) = fs::read_to_string(&path)
+        && let Some(first_line) = existing.lines().next()
+        && first_line == VERSION_LINE
+    {
+        println!("Plugin already up to date.");
+        return Ok(());
     }
 
     if let Some(parent) = path.parent() {

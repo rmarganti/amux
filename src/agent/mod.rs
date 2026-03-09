@@ -1,3 +1,4 @@
+pub mod gemini;
 pub mod opencode;
 
 use crate::error::AmuxError;
@@ -8,10 +9,13 @@ use crate::tmux::PaneInfo;
 pub enum AgentStatus {
     /// Agent is actively processing (LLM call, tool execution).
     Running,
+
     /// Agent is running but not actively processing.
     Idle,
+
     /// Agent is waiting for user interaction (e.g., permission approval).
     AwaitingInput,
+
     /// Agent has encountered an error and is retrying.
     Errored,
 }
@@ -42,4 +46,12 @@ pub trait AgentProvider {
 
     /// Scan the given tmux panes and return discovered agent instances.
     fn discover(&self, panes: &[PaneInfo]) -> Result<Vec<AgentInstance>, AmuxError>;
+}
+
+/// Returns all registered agent providers.
+pub fn all_providers() -> Vec<Box<dyn AgentProvider>> {
+    vec![
+        Box::new(gemini::GeminiProvider),
+        Box::new(opencode::OpenCodeProvider),
+    ]
 }

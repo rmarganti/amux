@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 use crate::error::AmuxError;
 
-const PLUGIN_CONTENT: &str = include_str!("../../plugin/amux-status.js");
+const PLUGIN_CONTENT: &str = include_str!("../../plugin/opencode/amux-status.js");
 const VERSION_LINE: &str = "// amux-status v1.1";
 
 fn plugin_path() -> Result<PathBuf, AmuxError> {

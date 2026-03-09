@@ -1,8 +1,7 @@
 use std::io::Write;
 use std::process::{Command, Stdio};
 
-use crate::agent::opencode::OpenCodeProvider;
-use crate::agent::{AgentInstance, AgentProvider};
+use crate::agent::{self, AgentInstance};
 use crate::error::AmuxError;
 use crate::tmux::{self, SystemTmuxRunner};
 
@@ -25,8 +24,7 @@ pub fn run() -> Result<(), AmuxError> {
 
     let runner = SystemTmuxRunner;
     let panes = tmux::list_panes(&runner)?;
-
-    let providers: Vec<Box<dyn AgentProvider>> = vec![Box::new(OpenCodeProvider)];
+    let providers = agent::all_providers();
 
     let mut instances: Vec<AgentInstance> = Vec::new();
     for provider in &providers {

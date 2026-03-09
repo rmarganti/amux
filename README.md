@@ -5,6 +5,7 @@ A CLI utility for monitoring AI coding agents running in tmux panes. Scans for k
 ## Supported Agents
 
 - **OpenCode**
+- **Gemini CLI**
 
 ## Commands
 
@@ -49,6 +50,16 @@ amux setup opencode
 ```
 
 This copies a lightweight plugin to `~/.config/opencode/plugin/` that reports agent status via the filesystem. Restart any running OpenCode instances after installing. See [docs/integrations/opencode.md](docs/integrations/opencode.md) for details.
+
+### Gemini CLI
+
+Install the status extension so amux can monitor Gemini CLI instances:
+
+```sh
+amux setup gemini
+```
+
+This copies an extension to `~/.gemini/extensions/amux-status/` that reports agent status via the filesystem. Restart any running Gemini CLI instances after installing. See [docs/integrations/gemini.md](docs/integrations/gemini.md) for details.
 
 ## Tmux Integration
 

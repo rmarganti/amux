@@ -1,5 +1,4 @@
-use crate::agent::opencode::OpenCodeProvider;
-use crate::agent::{AgentProvider, AgentStatus};
+use crate::agent::{self, AgentStatus};
 use crate::error::AmuxError;
 use crate::tmux::{self, SystemTmuxRunner};
 
@@ -48,8 +47,7 @@ pub fn run() -> Result<(), AmuxError> {
         }
     };
 
-    let providers: Vec<Box<dyn AgentProvider>> = vec![Box::new(OpenCodeProvider)];
-
+    let providers = agent::all_providers();
     let mut counts = StatusCounts::default();
 
     for provider in &providers {

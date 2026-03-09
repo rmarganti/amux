@@ -1,6 +1,7 @@
 # OpenCode Integration
 
-amux monitors OpenCode agent instances running in tmux panes using a lightweight plugin that runs inside the OpenCode process.
+amux monitors OpenCode agent instances running in tmux panes using a
+lightweight plugin that runs inside the OpenCode process.
 
 ## Architecture
 
@@ -19,7 +20,9 @@ amux monitors OpenCode agent instances running in tmux panes using a lightweight
 
 ### Plugin
 
-The `amux-status.js` plugin runs inside OpenCode and listens for session and permission events. On each state transition it writes a JSON status file to `$XDG_STATE_HOME/amux/opencode/<pane_id>.json` (defaulting to `~/.local/state/amux/opencode/`).
+The `amux-status.js` plugin runs inside OpenCode and listens for session and permission events.
+On each state transition it writes a JSON status file to `$XDG_STATE_HOME/amux/opencode/<pane_id>.json`
+(defaulting to `~/.local/state/amux/opencode/`).
 
 Status file format:
 
@@ -37,12 +40,12 @@ Possible `status` values: `idle`, `busy`, `awaiting_input`, `errored`.
 
 ### Status Mapping
 
-| amux Status      | Plugin Signal                         |
-|-------------------|---------------------------------------|
-| **Running**       | `status: "busy"`                      |
-| **Idle**          | `status: "idle"` or file missing      |
-| **Awaiting Input**| `status: "awaiting_input"`            |
-| **Errored**       | `status: "errored"`                   |
+| amux Status        | Plugin Signal                    |
+| ------------------ | -------------------------------- |
+| **Running**        | `status: "busy"`                 |
+| **Idle**           | `status: "idle"` or file missing |
+| **Awaiting Input** | `status: "awaiting_input"`       |
+| **Errored**        | `status: "errored"`              |
 
 ## Setup
 
@@ -52,10 +55,16 @@ Install the plugin with:
 amux setup opencode
 ```
 
-This copies `amux-status.js` to `~/.config/opencode/plugin/`, which OpenCode auto-discovers on startup. The command is idempotent — it only overwrites the file when the plugin version has changed.
+This copies `amux-status.js` to `~/.config/opencode/plugin/`, which OpenCode
+auto-discovers on startup. The command is idempotent — it only overwrites the
+file when the plugin version has changed.
 
 ## Process Identification
 
-When installed via Homebrew, OpenCode is a native binary at `/opt/homebrew/bin/opencode`. When installed via npm/bun, a wrapper script spawns a platform-specific binary (e.g., `opencode-darwin-arm64`).
+When installed via Homebrew, OpenCode is a native binary at
+`/opt/homebrew/bin/opencode`. When installed via npm/bun, a wrapper script
+spawns a platform-specific binary (e.g., `opencode-darwin-arm64`).
 
-**Detection:** Scan tmux pane process trees for a process whose name starts with `opencode`. Tmux exposes `#{pane_pid}` per pane; amux walks child processes (via `pgrep -P`) to find the actual `opencode` process.
+**Detection:** Scan tmux pane process trees for a process whose name starts
+with `opencode`. Tmux exposes `#{pane_pid}` per pane; amux walks child
+processes (via `pgrep -P`) to find the actual `opencode` process.

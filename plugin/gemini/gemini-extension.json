@@ -1,0 +1,5 @@
+{
+  "name": "amux-status",
+  "version": "1.0.0",
+  "description": "Reports Gemini CLI agent status to amux for tmux monitoring."
+}

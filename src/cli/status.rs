@@ -1,3 +1,4 @@
+use crate::agent::process_table::ProcessTable;
 use crate::agent::{self, AgentStatus};
 use crate::error::AmuxError;
 use crate::tmux::{self, SystemTmuxRunner};
@@ -48,23 +49,31 @@ pub fn run() -> Result<(), AmuxError> {
     };
 
     let providers = agent::all_providers();
+    let process_table = ProcessTable::snapshot();
     let mut counts = StatusCounts::default();
 
-    for provider in &providers {
-        let instances = match provider.discover(&panes) {
-            Ok(i) => i,
-            Err(_) => continue,
-        };
+    // Run provider discovery in parallel. `std::thread::scope` guarantees all
+    // spawned threads finish before the closure returns, so borrowed locals
+    // (`panes`, `process_table`) are safe to share without `Arc`.
+    std::thread::scope(|s| {
+        let handles: Vec<_> = providers
+            .iter()
+            .map(|provider| s.spawn(|| provider.discover(&panes, &process_table)))
+            .collect();
 
-        for instance in &instances {
-            match instance.status {
-                AgentStatus::Running => counts.running += 1,
-                AgentStatus::Idle => counts.idle += 1,
-                AgentStatus::AwaitingInput => counts.awaiting_input += 1,
-                AgentStatus::Errored => counts.errored += 1,
+        for handle in handles {
+            if let Ok(Ok(instances)) = handle.join() {
+                for instance in &instances {
+                    match instance.status {
+                        AgentStatus::Running => counts.running += 1,
+                        AgentStatus::Idle => counts.idle += 1,
+                        AgentStatus::AwaitingInput => counts.awaiting_input += 1,
+                        AgentStatus::Errored => counts.errored += 1,
+                    }
+                }
             }
         }
-    }
+    });
 
     print!("{}", format_status_summary(&counts));
 

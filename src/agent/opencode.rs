@@ -1,6 +1,7 @@
 use serde::Deserialize;
 use std;
 
+use crate::agent::process_table::ProcessTable;
 use crate::agent::{AgentInstance, AgentProvider, AgentStatus};
 use crate::error::AmuxError;
 use crate::tmux::PaneInfo;
@@ -13,11 +14,19 @@ impl AgentProvider for OpenCodeProvider {
         "opencode"
     }
 
-    fn discover(&self, panes: &[PaneInfo]) -> Result<Vec<AgentInstance>, AmuxError> {
+    fn discover(
+        &self,
+        panes: &[PaneInfo],
+        process_table: &ProcessTable,
+    ) -> Result<Vec<AgentInstance>, AmuxError> {
         let mut instances = Vec::new();
 
         for pane in panes {
-            if find_opencode_in_tree(pane.pane_pid).is_none() {
+            let is_opencode = process_table.has_process_in_tree(pane.pane_pid, &|process_info| {
+                process_info.comm == "opencode" || process_info.comm.starts_with("opencode-")
+            });
+
+            if !is_opencode {
                 continue;
             }
 
@@ -32,64 +41,6 @@ impl AgentProvider for OpenCodeProvider {
 
         Ok(instances)
     }
-}
-
-// ----------------------------------------------------------------
-// Process Tree Walking
-// ----------------------------------------------------------------
-
-/// Walk the process tree rooted at `root_pid` to find a child whose
-/// executable name starts with "opencode". Returns the PID if found.
-fn find_opencode_in_tree(root_pid: u32) -> Option<u32> {
-    if is_opencode_process(root_pid) {
-        return Some(root_pid);
-    }
-
-    let children = child_pids(root_pid);
-    for child in children {
-        if let Some(pid) = find_opencode_in_tree(child) {
-            return Some(pid);
-        }
-    }
-
-    None
-}
-
-/// Return the direct child PIDs of `pid`.
-fn child_pids(pid: u32) -> Vec<u32> {
-    let output = std::process::Command::new("pgrep")
-        .args(["-P", &pid.to_string()])
-        .output()
-        .ok();
-
-    let Some(output) = output else {
-        return vec![];
-    };
-
-    String::from_utf8_lossy(&output.stdout)
-        .lines()
-        .filter_map(|line| line.trim().parse::<u32>().ok())
-        .collect()
-}
-
-/// Check whether `pid` is an opencode process by inspecting its name.
-fn is_opencode_process(pid: u32) -> bool {
-    let output = std::process::Command::new("ps")
-        .args(["-p", &pid.to_string(), "-o", "comm="])
-        .output()
-        .ok();
-
-    let Some(output) = output else {
-        return false;
-    };
-
-    let comm = String::from_utf8_lossy(&output.stdout);
-    let name = comm.trim();
-
-    // Match both `opencode` (Homebrew) and `opencode-*` (npm/bun).
-    // `comm` may include the full path, so check the basename.
-    let basename = name.rsplit('/').next().unwrap_or(name);
-    basename == "opencode" || basename.starts_with("opencode-")
 }
 
 // ----------------------------------------------------------------

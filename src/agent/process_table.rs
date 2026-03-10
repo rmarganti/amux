@@ -114,10 +114,10 @@ impl ProcessTable {
         let mut stack = vec![root_pid];
 
         while let Some(pid) = stack.pop() {
-            if let Some(info) = self.processes.get(&pid) {
-                if matcher(info) {
-                    return true;
-                }
+            if let Some(info) = self.processes.get(&pid)
+                && matcher(info)
+            {
+                return true;
             }
 
             if let Some(kids) = self.children.get(&pid) {

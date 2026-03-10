@@ -1,5 +1,6 @@
 pub mod gemini;
 pub mod opencode;
+pub mod process_table;
 
 use crate::error::AmuxError;
 use crate::tmux::PaneInfo;
@@ -40,12 +41,19 @@ pub struct AgentInstance {
 }
 
 /// Trait implemented by each agent type to provide discovery and status reading.
-pub trait AgentProvider {
+///
+/// `Send + Sync` bounds allow providers to be shared across threads when
+/// callers use `std::thread::scope` to run discovery in parallel.
+pub trait AgentProvider: Send + Sync {
     /// A human-readable name for this agent type.
     fn name(&self) -> &'static str;
 
     /// Scan the given tmux panes and return discovered agent instances.
-    fn discover(&self, panes: &[PaneInfo]) -> Result<Vec<AgentInstance>, AmuxError>;
+    fn discover(
+        &self,
+        panes: &[PaneInfo],
+        process_table: &process_table::ProcessTable,
+    ) -> Result<Vec<AgentInstance>, AmuxError>;
 }
 
 /// Returns all registered agent providers.

@@ -1,6 +1,7 @@
 use std::io::Write;
 use std::process::{Command, Stdio};
 
+use crate::agent::process_table::ProcessTable;
 use crate::agent::{self, AgentInstance};
 use crate::error::AmuxError;
 use crate::tmux::{self, SystemTmuxRunner};
@@ -25,11 +26,26 @@ pub fn run() -> Result<(), AmuxError> {
     let runner = SystemTmuxRunner;
     let panes = tmux::list_panes(&runner)?;
     let providers = agent::all_providers();
-
+    let process_table = ProcessTable::snapshot();
     let mut instances: Vec<AgentInstance> = Vec::new();
-    for provider in &providers {
-        instances.extend(provider.discover(&panes)?);
-    }
+
+    // Run provider discovery in parallel. `std::thread::scope` guarantees all
+    // spawned threads finish before the closure returns, so borrowed locals
+    // (`panes`, `process_table`) are safe to share without `Arc`.
+    std::thread::scope(|s| {
+        let handles: Vec<_> = providers
+            .iter()
+            .map(|provider| s.spawn(|| provider.discover(&panes, &process_table)))
+            .collect();
+
+        for handle in handles {
+            if let Ok(result) = handle.join() {
+                instances.extend(result?);
+            }
+        }
+
+        Ok::<(), AmuxError>(())
+    })?;
 
     if instances.is_empty() {
         return Err(AmuxError::NoAgentsFound);

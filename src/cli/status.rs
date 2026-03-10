@@ -14,7 +14,7 @@ fn format_status_summary(counts: &StatusCounts) -> String {
         parts.push(format!("#[fg=green]●{}", counts.running));
     }
     if counts.idle > 0 {
-        parts.push(format!("#[fg=blue]○{}", counts.idle));
+        parts.push(format!("#[default]○{}", counts.idle));
     }
     if counts.awaiting_input > 0 {
         parts.push(format!("#[fg=yellow]⚠{}", counts.awaiting_input));
@@ -27,7 +27,7 @@ fn format_status_summary(counts: &StatusCounts) -> String {
         return String::new();
     }
 
-    parts.join(" ")
+    parts.join(" ") + "#[default]"
 }
 
 #[derive(Debug, Default, PartialEq, Eq)]
@@ -94,7 +94,7 @@ mod tests {
         };
         assert_eq!(
             format_status_summary(&counts),
-            "#[fg=green]●2 #[fg=blue]○1 #[fg=yellow]⚠1 #[fg=red]✖1"
+            "#[fg=green]●2 #[default]○1 #[fg=yellow]⚠1 #[fg=red]✖1#[default]"
         );
     }
 
@@ -104,7 +104,7 @@ mod tests {
             running: 3,
             ..Default::default()
         };
-        assert_eq!(format_status_summary(&counts), "#[fg=green]●3");
+        assert_eq!(format_status_summary(&counts), "#[fg=green]●3#[default]");
     }
 
     #[test]
@@ -113,7 +113,7 @@ mod tests {
             awaiting_input: 2,
             ..Default::default()
         };
-        assert_eq!(format_status_summary(&counts), "#[fg=yellow]⚠2");
+        assert_eq!(format_status_summary(&counts), "#[fg=yellow]⚠2#[default]");
     }
 
     #[test]
@@ -129,6 +129,9 @@ mod tests {
             errored: 2,
             ..Default::default()
         };
-        assert_eq!(format_status_summary(&counts), "#[fg=green]●1 #[fg=red]✖2");
+        assert_eq!(
+            format_status_summary(&counts),
+            "#[fg=green]●1 #[fg=red]✖2#[default]"
+        );
     }
 }

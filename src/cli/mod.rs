@@ -5,6 +5,8 @@ pub mod status;
 
 use clap::{Parser, Subcommand};
 
+use crate::agent::AgentStatus;
+
 #[derive(Parser)]
 #[command(name = "amux", about = "Manage and monitor AI coding agents in tmux")]
 pub struct Cli {
@@ -15,7 +17,16 @@ pub struct Cli {
 #[derive(Subcommand)]
 pub enum Command {
     /// Scan tmux panes for agents and select one via fzf
-    List,
+    List {
+        /// Filter agents by status
+        #[arg(long)]
+        status: Option<AgentStatus>,
+
+        /// Output plain text to stdout instead of launching fzf.
+        /// Intended for use with fzf's reload action.
+        #[arg(long)]
+        plain: bool,
+    },
     /// Install agent plugins and configure integrations
     Setup {
         #[command(subcommand)]

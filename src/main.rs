@@ -11,7 +11,7 @@ fn main() {
     let cli = Cli::parse();
 
     let result = match cli.command {
-        Command::List => cli::list::run(),
+        Command::List { status, plain } => cli::list::run(status, plain),
         Command::Setup { target } => match target {
             cli::SetupTarget::Gemini => cli::setup_gemini::run(),
             cli::SetupTarget::Opencode => cli::setup_opencode::run(),

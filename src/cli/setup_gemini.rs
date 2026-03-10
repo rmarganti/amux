@@ -8,7 +8,9 @@ const EXTENSION_MANIFEST: &str = include_str!("../../plugin/gemini/gemini-extens
 const HOOKS_JSON: &str = include_str!("../../plugin/gemini/hooks/hooks.json");
 const HOOK_SCRIPT: &str = include_str!("../../plugin/gemini/hooks/amux-status.sh");
 
-const VERSION_LINE: &str = "# amux-status v1.0";
+fn version_from_content(content: &str) -> Option<&str> {
+    content.lines().next()?.strip_prefix("# amux-status ")
+}
 
 fn extension_dir() -> Result<PathBuf, AmuxError> {
     let home = dirs::home_dir()
@@ -19,9 +21,11 @@ fn extension_dir() -> Result<PathBuf, AmuxError> {
 pub fn run() -> Result<(), AmuxError> {
     let dir = extension_dir()?;
     let hook_script_path = dir.join("hooks").join("amux-status.sh");
+    let current_version = version_from_content(HOOK_SCRIPT)
+        .ok_or_else(|| AmuxError::Setup("could not parse version from hook script".to_string()))?;
 
     if let Ok(existing) = fs::read_to_string(&hook_script_path)
-        && existing.lines().any(|line| line == VERSION_LINE)
+        && version_from_content(&existing) == Some(current_version)
     {
         println!("Gemini CLI extension already up to date.");
         return Ok(());

@@ -4,7 +4,10 @@ use std::path::PathBuf;
 use crate::error::AmuxError;
 
 const PLUGIN_CONTENT: &str = include_str!("../../plugin/opencode/amux-status.js");
-const VERSION_LINE: &str = "// amux-status v1.1";
+
+fn version_from_content(content: &str) -> Option<&str> {
+    content.lines().next()?.strip_prefix("// amux-status ")
+}
 
 fn plugin_path() -> Result<PathBuf, AmuxError> {
     let config_dir = if let Ok(xdg) = std::env::var("XDG_CONFIG_HOME") {
@@ -22,10 +25,11 @@ fn plugin_path() -> Result<PathBuf, AmuxError> {
 
 pub fn run() -> Result<(), AmuxError> {
     let path = plugin_path()?;
+    let current_version = version_from_content(PLUGIN_CONTENT)
+        .ok_or_else(|| AmuxError::Setup("could not parse version from plugin".to_string()))?;
 
     if let Ok(existing) = fs::read_to_string(&path)
-        && let Some(first_line) = existing.lines().next()
-        && first_line == VERSION_LINE
+        && version_from_content(&existing) == Some(current_version)
     {
         println!("Plugin already up to date.");
         return Ok(());

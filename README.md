@@ -70,7 +70,7 @@ Add to your `tmux.conf`:
 set -g status-right '#(amux status)'
 
 # Popup — browse and jump to agents with <prefix> + a
-bind a display-popup -E "amux list"
+bind a display-popup -E -w 80% -h 70% "amux list"
 ```
 
 Reload with `tmux source-file ~/.tmux.conf`.

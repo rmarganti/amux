@@ -70,6 +70,10 @@ pub fn run() -> Result<(), AmuxError> {
             "1",
             "--prompt",
             "agent> ",
+            "--preview",
+            "tmux capture-pane -e -p -t {2}",
+            "--preview-window",
+            "right:55%",
         ])
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())

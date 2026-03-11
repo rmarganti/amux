@@ -39,6 +39,8 @@ struct StatusCounts {
 }
 
 pub fn run() -> Result<(), AmuxError> {
+    agent::status_file::purge_all_stale_files();
+
     let runner = SystemTmuxRunner;
     let panes = match tmux::list_panes(&runner) {
         Ok(p) => p,

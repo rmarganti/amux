@@ -1,6 +1,7 @@
 pub mod gemini;
 pub mod opencode;
 pub mod process_table;
+pub mod status_file;
 
 use clap::ValueEnum;
 

@@ -32,6 +32,16 @@ Status file format:
 
 Possible `status` values: `idle`, `busy`, `awaiting_input`, `errored`.
 
+### Cleanup
+
+The plugin registers `process.on('exit')`, `SIGINT`, and `SIGTERM` handlers
+that remove the status file when OpenCode exits. This prevents stale files
+from accumulating after normal shutdowns.
+
+For cases where the process is killed without triggering exit handlers (e.g.,
+`kill -9`), amux also performs a periodic purge of status files whose recorded
+PID is no longer alive (see the main README for details).
+
 ### Discovery
 
 1. For each tmux pane, walk the process tree from `pane_pid` to find a child process named `opencode`.

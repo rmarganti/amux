@@ -1,1 +1,4 @@
-words = ["amux"]
+words = [
+    "amux",
+    "opencode",
+]

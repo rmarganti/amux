@@ -19,6 +19,8 @@ fn format_line(instance: &AgentInstance) -> String {
 }
 
 pub fn run(status_filter: Option<AgentStatus>, plain: bool) -> Result<(), AmuxError> {
+    agent::status_file::purge_all_stale_files();
+
     if !tmux::is_inside_tmux() {
         return Err(AmuxError::NotInTmux);
     }

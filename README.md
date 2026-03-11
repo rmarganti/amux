@@ -13,13 +13,13 @@ A CLI utility for monitoring AI coding agents running in tmux panes. Scans for k
 
 Scans all tmux panes for agents, pipes results through `fzf`, and switches to the selected pane. In the fzf picker, use keyboard shortcuts to filter by status:
 
-| Shortcut | Filter |
-|---|---|
-| `ctrl-a` | All |
-| `ctrl-r` | Running |
-| `ctrl-i` | Idle |
+| Shortcut | Filter         |
+| -------- | -------------- |
+| `ctrl-a` | All            |
+| `ctrl-r` | Running        |
+| `ctrl-i` | Idle           |
 | `ctrl-w` | Awaiting input |
-| `ctrl-e` | Errored |
+| `ctrl-e` | Errored        |
 
 Options:
 

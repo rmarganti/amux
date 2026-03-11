@@ -11,7 +11,20 @@ A CLI utility for monitoring AI coding agents running in tmux panes. Scans for k
 
 ### `amux list`
 
-Scans all tmux panes for agents, pipes results through `fzf`, and switches to the selected pane.
+Scans all tmux panes for agents, pipes results through `fzf`, and switches to the selected pane. In the fzf picker, use keyboard shortcuts to filter by status:
+
+| Shortcut | Filter         |
+| -------- | -------------- |
+| `ctrl-a` | All            |
+| `ctrl-r` | Running        |
+| `ctrl-i` | Idle           |
+| `ctrl-w` | Awaiting input |
+| `ctrl-e` | Errored        |
+
+Options:
+
+- `--status <STATUS>` — filter agents by status (`running`, `idle`, `awaiting-input`, `errored`)
+- `--plain` — output plain text to stdout instead of launching fzf (for scripting and fzf reload)
 
 ```
 [session > window] agent - status

@@ -2,11 +2,13 @@ pub mod gemini;
 pub mod opencode;
 pub mod process_table;
 
+use clap::ValueEnum;
+
 use crate::error::AmuxError;
 use crate::tmux::PaneInfo;
 
 /// The observed status of an agent instance.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 pub enum AgentStatus {
     /// Agent is actively processing (LLM call, tool execution).
     Running,
@@ -15,6 +17,7 @@ pub enum AgentStatus {
     Idle,
 
     /// Agent is waiting for user interaction (e.g., permission approval).
+    #[value(name = "awaiting-input")]
     AwaitingInput,
 
     /// Agent has encountered an error and is retrying.

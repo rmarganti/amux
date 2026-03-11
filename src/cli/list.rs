@@ -2,7 +2,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 use crate::agent::process_table::ProcessTable;
-use crate::agent::{self, AgentInstance};
+use crate::agent::{self, AgentInstance, AgentStatus};
 use crate::error::AmuxError;
 use crate::tmux::{self, SystemTmuxRunner};
 
@@ -18,7 +18,7 @@ fn format_line(instance: &AgentInstance) -> String {
     )
 }
 
-pub fn run() -> Result<(), AmuxError> {
+pub fn run(status_filter: Option<AgentStatus>, plain: bool) -> Result<(), AmuxError> {
     if !tmux::is_inside_tmux() {
         return Err(AmuxError::NotInTmux);
     }
@@ -47,7 +47,16 @@ pub fn run() -> Result<(), AmuxError> {
         Ok::<(), AmuxError>(())
     })?;
 
+    if let Some(filter) = status_filter {
+        instances.retain(|inst| inst.status == filter);
+    }
+
     if instances.is_empty() {
+        if status_filter.is_some() {
+            // When a filter is active, output nothing so fzf shows an empty
+            // list. The user can switch filters via keybinds.
+            return Ok(());
+        }
         return Err(AmuxError::NoAgentsFound);
     }
 
@@ -60,6 +69,11 @@ pub fn run() -> Result<(), AmuxError> {
         .collect::<Vec<_>>()
         .join("\n");
 
+    if plain {
+        println!("{fzf_input}");
+        return Ok(());
+    }
+
     let mut fzf = Command::new("fzf")
         .args([
             "--ansi",
@@ -69,7 +83,19 @@ pub fn run() -> Result<(), AmuxError> {
             "--with-nth",
             "1",
             "--prompt",
-            "agent> ",
+            "all> ",
+            "--header",
+            "  ^a:all / ^r:running / ^i:idle / ^w:awaiting / ^e:errored",
+            "--bind",
+            "ctrl-a:change-prompt(all> )+reload(amux list --plain)",
+            "--bind",
+            "ctrl-r:change-prompt(running> )+reload(amux list --plain --status running)",
+            "--bind",
+            "ctrl-i:change-prompt(idle> )+reload(amux list --plain --status idle)",
+            "--bind",
+            "ctrl-w:change-prompt(awaiting> )+reload(amux list --plain --status awaiting-input)",
+            "--bind",
+            "ctrl-e:change-prompt(errored> )+reload(amux list --plain --status errored)",
             "--preview",
             "tmux capture-pane -e -p -t {2}",
             "--preview-window",

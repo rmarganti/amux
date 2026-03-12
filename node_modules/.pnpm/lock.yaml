@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      '@ampcode/plugin':
+        specifier: 0.0.0-20260312001450-g50314c1
+        version: 0.0.0-20260312001450-g50314c1
       '@opencode-ai/plugin':
         specifier: ^1.2.24
         version: 1.2.24
@@ -16,6 +19,9 @@ importers:
         version: 25.4.0
 
 packages:
+
+  '@ampcode/plugin@0.0.0-20260312001450-g50314c1':
+    resolution: {integrity: sha512-9Q8cB7sMaNsBrGp0X+GJ6P2qtfEN9A+iB9f4HBRV+MOJ35GFx7OW4yG3GGDMNK5hWZyESZ2c5kA4vJshWxdBog==}
 
   '@opencode-ai/plugin@1.2.24':
     resolution: {integrity: sha512-B3hw415D+2w6AtdRdvKWkuQVT0LXDWTdnAZhZC6gbd+UHh5O5DMmnZTe/YM8yK8ZZO9Dvo5rnV78TdDDYunJiw==}
@@ -33,6 +39,8 @@ packages:
     resolution: {integrity: sha512-5R1P+WwQqmmMIEACyzSvo4JXHY5WiAFHRMg+zBZKgKS+Q1viRa0C1hmUKtHltoIFKtIdki3pRxkmpP74jnNYHQ==}
 
 snapshots:
+
+  '@ampcode/plugin@0.0.0-20260312001450-g50314c1': {}
 
   '@opencode-ai/plugin@1.2.24':
     dependencies:

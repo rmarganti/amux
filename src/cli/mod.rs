@@ -1,4 +1,5 @@
 pub mod list;
+pub mod setup_amp;
 pub mod setup_gemini;
 pub mod setup_opencode;
 pub mod status;
@@ -38,6 +39,8 @@ pub enum Command {
 
 #[derive(Subcommand)]
 pub enum SetupTarget {
+    /// Install the amux status plugin for Amp
+    Amp,
     /// Install the amux status extension for Gemini CLI
     Gemini,
     /// Install the amux status plugin for OpenCode

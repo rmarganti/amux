@@ -4,6 +4,7 @@ A CLI utility for monitoring AI coding agents running in tmux panes. Scans for k
 
 ## Supported Agents
 
+- **Amp**
 - **OpenCode**
 - **Gemini CLI**
 
@@ -53,6 +54,22 @@ cargo install --path .
 ```
 
 ## Agent Setup
+
+### Amp
+
+Install the status plugin so amux can monitor Amp instances:
+
+```sh
+amux setup amp
+```
+
+This copies a lightweight plugin to `~/.config/amp/plugins/`. Amp must be launched with `PLUGINS=all` for plugins to be active:
+
+```sh
+PLUGINS=all amp
+```
+
+Restart any running Amp instances after installing. See [docs/integrations/amp.md](docs/integrations/amp.md) for details.
 
 ### OpenCode
 

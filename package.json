@@ -12,7 +12,6 @@
   "packageManager": "pnpm@10.29.2",
   "devDependencies": {
     "@ampcode/plugin": "0.0.0-20260312001450-g50314c1",
-    "@opencode-ai/plugin": "^1.2.24",
     "@types/node": "^25.4.0"
   }
 }

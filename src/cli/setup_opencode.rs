@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 use crate::error::AmuxError;
 
-const PLUGIN_CONTENT: &str = include_str!("../../plugin/opencode/amux-status.js");
+const PLUGIN_CONTENT: &str = include_str!("../../plugin/opencode/amux-status.ts");
 
 fn version_from_content(content: &str) -> Option<&str> {
     content.lines().next()?.strip_prefix("// amux-status ")
@@ -20,7 +20,7 @@ fn plugin_path() -> Result<PathBuf, AmuxError> {
     Ok(config_dir
         .join("opencode")
         .join("plugin")
-        .join("amux-status.js"))
+        .join("amux-status.ts"))
 }
 
 pub fn run() -> Result<(), AmuxError> {
@@ -44,6 +44,19 @@ pub fn run() -> Result<(), AmuxError> {
         .map_err(|e| AmuxError::Setup(format!("failed to write plugin: {e}")))?;
 
     println!("Plugin installed at {}", path.display());
+
+    // Clean up the old .js plugin if it exists from a previous installation.
+    let old_js = path.with_file_name("amux-status.js");
+    if old_js.exists() {
+        if let Err(e) = fs::remove_file(&old_js) {
+            eprintln!(
+                "Warning: failed to remove old plugin {}: {e}",
+                old_js.display()
+            );
+        } else {
+            println!("Removed old plugin at {}", old_js.display());
+        }
+    }
 
     Ok(())
 }

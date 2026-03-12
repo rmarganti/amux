@@ -1,4 +1,6 @@
 // amux-status v1.2
+import { Plugin } from '@opencode-ai/plugin';
+
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
@@ -35,7 +37,9 @@ function writeStatus(paneId, status) {
 
 function removeStatus(paneId) {
     const filePath = getStatusFilePath(paneId);
-    try { fs.unlinkSync(filePath); } catch (_) {}
+    try {
+        fs.unlinkSync(filePath);
+    } catch (_) {}
 }
 
 const Plugin = async ({ $, client }) => {
@@ -44,8 +48,14 @@ const Plugin = async ({ $, client }) => {
 
     const cleanup = () => removeStatus(paneId);
     process.on('exit', cleanup);
-    process.on('SIGINT', () => { cleanup(); process.exit(130); });
-    process.on('SIGTERM', () => { cleanup(); process.exit(143); });
+    process.on('SIGINT', () => {
+        cleanup();
+        process.exit(130);
+    });
+    process.on('SIGTERM', () => {
+        cleanup();
+        process.exit(143);
+    });
 
     log('info', 'plugin initialized', { paneId });
 

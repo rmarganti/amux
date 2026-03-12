@@ -20,7 +20,7 @@ lightweight plugin that runs inside the OpenCode process.
 
 ### Plugin
 
-The `amux-status.js` plugin runs inside OpenCode and listens for session and permission events.
+The `amux-status.ts` plugin runs inside OpenCode and listens for session and permission events.
 On each state transition it writes a JSON status file to `$XDG_STATE_HOME/amux/opencode/<pane_id>.json`
 (defaulting to `~/.local/state/amux/opencode/`).
 
@@ -65,7 +65,7 @@ Install the plugin with:
 amux setup opencode
 ```
 
-This copies `amux-status.js` to `~/.config/opencode/plugin/`, which OpenCode
+This copies `amux-status.ts` to `~/.config/opencode/plugin/`, which OpenCode
 auto-discovers on startup. The command is idempotent — it only overwrites the
 file when the plugin version has changed.
 

@@ -15,7 +15,7 @@ pub struct StatusFile {
 const STALE_THRESHOLD_SECS: u64 = 30;
 
 /// Known agent subdirectories under the status base directory.
-const AGENT_SUBDIRS: &[&str] = &["gemini", "opencode"];
+const AGENT_SUBDIRS: &[&str] = &["amp", "gemini", "opencode"];
 
 /// Return the base directory for all agent status files
 /// (`$XDG_STATE_HOME/amux/`).

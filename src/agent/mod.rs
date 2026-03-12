@@ -1,3 +1,4 @@
+pub mod amp;
 pub mod gemini;
 pub mod opencode;
 pub mod process_table;
@@ -63,6 +64,7 @@ pub trait AgentProvider: Send + Sync {
 /// Returns all registered agent providers.
 pub fn all_providers() -> Vec<Box<dyn AgentProvider>> {
     vec![
+        Box::new(amp::AmpProvider),
         Box::new(gemini::GeminiProvider),
         Box::new(opencode::OpenCodeProvider),
     ]

@@ -10,7 +10,9 @@ pub struct ProcessInfo {
     /// Parent process ID.
     pub ppid: u32,
 
-    /// Basename of the executable (from `comm`).
+    /// Basename of the executable. Derived from the `comm` column; falls back to the
+    /// basename of the first token in `args` when macOS MAXCOMLEN truncation would
+    /// yield a mangled path fragment.
     pub comm: String,
 
     /// Full command-line arguments.
@@ -94,12 +96,25 @@ impl ProcessTable {
         };
 
         // `comm` from ps may be a full path; take the basename.
-        let basename = comm.rsplit('/').next().unwrap_or(comm);
+        let raw_basename = comm.rsplit('/').next().unwrap_or(comm);
+
+        // On macOS, MAXCOMLEN (15 chars) causes the kernel to truncate long absolute paths
+        // stored in `p_comm`. When the original `comm` value contains a '/', it indicates
+        // a path (even if truncated). In such cases, fall back to deriving the basename from
+        // the first token of `args`, which is never truncated by the kernel.
+        let comm = if comm.contains('/') {
+            args.split_whitespace()
+                .next()
+                .and_then(|p| p.rsplit('/').next())
+                .unwrap_or(raw_basename)
+        } else {
+            raw_basename
+        };
 
         Some(ProcessInfo {
             pid,
             ppid,
-            comm: basename.to_string(),
+            comm: comm.to_string(),
             args: args.to_string(),
         })
     }
@@ -150,6 +165,14 @@ mod tests {
   400   200 cat              cat /dev/null
 ";
 
+    const HOMEBREW_PS_OUTPUT: &str = "\
+  PID  PPID COMM             ARGS
+    1     0 launchd          /sbin/launchd
+  100     1 bash             /bin/bash --login
+  200   100 /opt/homebrew/op /opt/homebrew/opt/node/bin/node /opt/homebrew/bin/gemini
+  201   100 /opt/homebrew/Ce /opt/homebrew/Cellar/node/25.6.1_1/bin/node /opt/homebrew/bin/gemini
+";
+
     #[test]
     fn test_parse_ps_output() {
         let table = ProcessTable::parse(SAMPLE_PS_OUTPUT);
@@ -192,5 +215,39 @@ mod tests {
 
         let found = table.has_process_in_tree(100, &|info| info.comm == "vim");
         assert!(!found);
+    }
+
+    #[test]
+    fn test_parse_truncated_comm_derives_basename_from_args() {
+        let table = ProcessTable::parse(HOMEBREW_PS_OUTPUT);
+
+        // Both processes must have comm == "node", not "op" or "Ce".
+        let p200 = &table.processes[&200];
+        assert_eq!(p200.comm, "node");
+        assert_eq!(
+            p200.args,
+            "/opt/homebrew/opt/node/bin/node /opt/homebrew/bin/gemini"
+        );
+
+        let p201 = &table.processes[&201];
+        assert_eq!(p201.comm, "node");
+        assert_eq!(
+            p201.args,
+            "/opt/homebrew/Cellar/node/25.6.1_1/bin/node /opt/homebrew/bin/gemini"
+        );
+    }
+
+    #[test]
+    fn test_homebrew_node_gemini_is_detected_in_tree() {
+        let table = ProcessTable::parse(HOMEBREW_PS_OUTPUT);
+
+        // Simulate the Gemini detection predicate used in gemini.rs.
+        let found = table.has_process_in_tree(100, &|info| {
+            info.comm == "gemini" || (info.comm == "node" && info.args.contains("gemini"))
+        });
+        assert!(
+            found,
+            "Gemini should be detected under a Homebrew Node process"
+        );
     }
 }

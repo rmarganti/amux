@@ -9,6 +9,7 @@ Observational only — it does not launch, restart, or interact with agents.
 Root
 ├─ /docs: dev/design docs, not meant for end user (should be kept up-to-date)
 ├─┬ /plugin: Agent specific plugins
+│ ├─ /plugin/amp: Amp Code status extension
 │ ├─ /plugin/gemini: Gemini CLI status extension
 │ └─ /plugin/opencode: OpenCode status plugin
 ├─ /src/agent: agent-specific implementation

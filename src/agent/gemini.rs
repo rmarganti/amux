@@ -21,9 +21,15 @@ impl AgentProvider for GeminiProvider {
 
         for pane in panes {
             let is_gemini = process_table.has_process_in_tree(pane.pane_pid, &|process_info| {
+                // Branch 1: native/SEA Gemini binary — comm is "gemini" directly.
                 if process_info.comm == "gemini" {
                     return true;
                 }
+
+                // Branch 2: npm-installed Gemini CLI running under Node.js.
+                // `comm` is normalised to the true basename by process_table::parse_line,
+                // which falls back to the `args` first token when macOS MAXCOMLEN truncation
+                // would otherwise mangle a long Homebrew path (e.g. /opt/homebrew/op → node).
                 process_info.comm == "node" && process_info.args.contains("gemini")
             });
 

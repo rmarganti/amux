@@ -97,7 +97,7 @@ mod tests {
         ];
         assert_eq!(
             format_status_summary(&instances),
-            "#[fg=green]●#[fg=green]●#[default]○#[fg=yellow]⚠#[fg=red]✖#[default]"
+            "#[fg=green]● #[fg=green]● #[default]○ #[fg=yellow]⚠ #[fg=red]✖#[default]"
         );
     }
 
@@ -110,7 +110,7 @@ mod tests {
         ];
         assert_eq!(
             format_status_summary(&instances),
-            "#[fg=green]●#[fg=green]●#[fg=green]●#[default]"
+            "#[fg=green]● #[fg=green]● #[fg=green]●#[default]"
         );
     }
 
@@ -122,7 +122,7 @@ mod tests {
         ];
         assert_eq!(
             format_status_summary(&instances),
-            "#[fg=yellow]⚠#[fg=yellow]⚠#[default]"
+            "#[fg=yellow]⚠ #[fg=yellow]⚠#[default]"
         );
     }
 
@@ -141,7 +141,7 @@ mod tests {
         ];
         assert_eq!(
             format_status_summary(&instances),
-            "#[fg=green]●#[fg=red]✖#[fg=red]✖#[default]"
+            "#[fg=green]● #[fg=red]✖ #[fg=red]✖#[default]"
         );
     }
 }

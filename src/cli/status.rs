@@ -1,42 +1,7 @@
 use crate::agent::process_table::ProcessTable;
-use crate::agent::{self, AgentStatus};
+use crate::agent::{self, AgentInstance, AgentStatus};
 use crate::error::AmuxError;
 use crate::tmux::{self, SystemTmuxRunner};
-
-/// Format aggregated agent statuses as a terse tmux-interpolatable string.
-///
-/// Output example: `#[fg=green]●2 #[fg=yellow]⚠1`
-/// Only statuses with a non-zero count are included.
-fn format_status_summary(counts: &StatusCounts) -> String {
-    let mut parts: Vec<String> = Vec::new();
-
-    if counts.running > 0 {
-        parts.push(format!("#[fg=green]●{}", counts.running));
-    }
-    if counts.idle > 0 {
-        parts.push(format!("#[default]○{}", counts.idle));
-    }
-    if counts.awaiting_input > 0 {
-        parts.push(format!("#[fg=yellow]⚠{}", counts.awaiting_input));
-    }
-    if counts.errored > 0 {
-        parts.push(format!("#[fg=red]✖{}", counts.errored));
-    }
-
-    if parts.is_empty() {
-        return String::new();
-    }
-
-    parts.join(" ") + "#[default]"
-}
-
-#[derive(Debug, Default, PartialEq, Eq)]
-struct StatusCounts {
-    running: usize,
-    idle: usize,
-    awaiting_input: usize,
-    errored: usize,
-}
 
 pub fn run() -> Result<(), AmuxError> {
     agent::status_file::purge_all_stale_files();
@@ -52,7 +17,7 @@ pub fn run() -> Result<(), AmuxError> {
 
     let providers = agent::all_providers();
     let process_table = ProcessTable::snapshot();
-    let mut counts = StatusCounts::default();
+    let mut instances: Vec<AgentInstance> = Vec::new();
 
     // Run provider discovery in parallel. `std::thread::scope` guarantees all
     // spawned threads finish before the closure returns, so borrowed locals
@@ -64,76 +29,119 @@ pub fn run() -> Result<(), AmuxError> {
             .collect();
 
         for handle in handles {
-            if let Ok(Ok(instances)) = handle.join() {
-                for instance in &instances {
-                    match instance.status {
-                        AgentStatus::Running => counts.running += 1,
-                        AgentStatus::Idle => counts.idle += 1,
-                        AgentStatus::AwaitingInput => counts.awaiting_input += 1,
-                        AgentStatus::Errored => counts.errored += 1,
-                    }
-                }
+            // Each thread returns a `Result<Vec<AgentInstance>, AmuxError>`, so we need to
+            // unwrap both the thread result and the provider discovery result.
+            if let Ok(Ok(mut discovered)) = handle.join() {
+                instances.append(&mut discovered);
             }
         }
     });
 
-    print!("{}", format_status_summary(&counts));
+    print!("{}", format_status_summary(&instances));
 
     Ok(())
+}
+
+/// Format agent statuses as colored icons.
+///
+/// Output example: `#[fg=green]● #[default]○ #[fg=yellow]⚠#[default]`
+fn format_status_summary(instances: &[AgentInstance]) -> String {
+    if instances.is_empty() {
+        return String::new();
+    }
+
+    let icons: Vec<String> = instances
+        .iter()
+        .map(|instance| status_to_icon(&instance.status).to_string())
+        .collect();
+
+    icons.join(" ") + "#[default]"
+}
+
+/// Get the icon and color for a given agent status.
+fn status_to_icon(status: &AgentStatus) -> &'static str {
+    match status {
+        AgentStatus::Running => "#[fg=green]●",
+        AgentStatus::Idle => "#[default]○",
+        AgentStatus::AwaitingInput => "#[fg=yellow]⚠",
+        AgentStatus::Errored => "#[fg=red]✖",
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tmux::PaneInfo;
+
+    fn create_instance(status: AgentStatus) -> AgentInstance {
+        AgentInstance {
+            pane: PaneInfo {
+                session_name: "test".to_string(),
+                window_name: "0".to_string(),
+                pane_id: "0".to_string(),
+                pane_pid: 0,
+            },
+            provider_name: "test",
+            status,
+        }
+    }
 
     #[test]
     fn test_format_status_summary_all_statuses() {
-        let counts = StatusCounts {
-            running: 2,
-            idle: 1,
-            awaiting_input: 1,
-            errored: 1,
-        };
+        let instances = vec![
+            create_instance(AgentStatus::Running),
+            create_instance(AgentStatus::Running),
+            create_instance(AgentStatus::Idle),
+            create_instance(AgentStatus::AwaitingInput),
+            create_instance(AgentStatus::Errored),
+        ];
         assert_eq!(
-            format_status_summary(&counts),
-            "#[fg=green]●2 #[default]○1 #[fg=yellow]⚠1 #[fg=red]✖1#[default]"
+            format_status_summary(&instances),
+            "#[fg=green]● #[fg=green]● #[default]○ #[fg=yellow]⚠ #[fg=red]✖#[default]"
         );
     }
 
     #[test]
     fn test_format_status_summary_only_running() {
-        let counts = StatusCounts {
-            running: 3,
-            ..Default::default()
-        };
-        assert_eq!(format_status_summary(&counts), "#[fg=green]●3#[default]");
+        let instances = vec![
+            create_instance(AgentStatus::Running),
+            create_instance(AgentStatus::Running),
+            create_instance(AgentStatus::Running),
+        ];
+        assert_eq!(
+            format_status_summary(&instances),
+            "#[fg=green]● #[fg=green]● #[fg=green]●#[default]"
+        );
     }
 
     #[test]
     fn test_format_status_summary_only_awaiting() {
-        let counts = StatusCounts {
-            awaiting_input: 2,
-            ..Default::default()
-        };
-        assert_eq!(format_status_summary(&counts), "#[fg=yellow]⚠2#[default]");
+        let instances = vec![
+            create_instance(AgentStatus::AwaitingInput),
+            create_instance(AgentStatus::AwaitingInput),
+        ];
+        assert_eq!(
+            format_status_summary(&instances),
+            "#[fg=yellow]⚠ #[fg=yellow]⚠#[default]"
+        );
     }
 
     #[test]
     fn test_format_status_summary_empty() {
-        let counts = StatusCounts::default();
-        assert_eq!(format_status_summary(&counts), "");
+        let instances: Vec<AgentInstance> = vec![];
+        assert_eq!(format_status_summary(&instances), "");
     }
 
     #[test]
     fn test_format_status_summary_mixed() {
-        let counts = StatusCounts {
-            running: 1,
-            errored: 2,
-            ..Default::default()
-        };
+        let instances = vec![
+            create_instance(AgentStatus::Running),
+            create_instance(AgentStatus::Errored),
+            create_instance(AgentStatus::Errored),
+        ];
         assert_eq!(
-            format_status_summary(&counts),
-            "#[fg=green]●1 #[fg=red]✖2#[default]"
+            format_status_summary(&instances),
+            "#[fg=green]● #[fg=red]✖ #[fg=red]✖#[default]"
         );
     }
 }

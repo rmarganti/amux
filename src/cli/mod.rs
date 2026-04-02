@@ -2,6 +2,7 @@ pub mod list;
 pub mod setup_amp;
 pub mod setup_gemini;
 pub mod setup_opencode;
+pub mod setup_pi;
 pub mod status;
 
 use clap::{Parser, Subcommand};
@@ -45,4 +46,6 @@ pub enum SetupTarget {
     Gemini,
     /// Install the amux status plugin for OpenCode
     Opencode,
+    /// Install the amux status extension for Pi Coding Agent
+    Pi,
 }

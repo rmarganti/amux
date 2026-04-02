@@ -16,6 +16,7 @@ fn main() {
             cli::SetupTarget::Amp => cli::setup_amp::run(),
             cli::SetupTarget::Gemini => cli::setup_gemini::run(),
             cli::SetupTarget::Opencode => cli::setup_opencode::run(),
+            cli::SetupTarget::Pi => cli::setup_pi::run(),
         },
         Command::Status => cli::status::run(),
     };

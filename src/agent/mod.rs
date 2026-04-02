@@ -1,6 +1,7 @@
 pub mod amp;
 pub mod gemini;
 pub mod opencode;
+pub mod pi;
 pub mod process_table;
 pub mod status_file;
 
@@ -67,5 +68,6 @@ pub fn all_providers() -> Vec<Box<dyn AgentProvider>> {
         Box::new(amp::AmpProvider),
         Box::new(gemini::GeminiProvider),
         Box::new(opencode::OpenCodeProvider),
+        Box::new(pi::PiProvider),
     ]
 }

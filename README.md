@@ -7,6 +7,7 @@ A CLI utility for monitoring AI coding agents running in tmux panes. Scans for k
 - **Amp**
 - **OpenCode**
 - **Gemini CLI**
+- **Pi Coding Agent**
 
 ## Commands
 
@@ -90,6 +91,16 @@ amux setup gemini
 ```
 
 This copies an extension to `~/.gemini/extensions/amux-status/` that reports agent status via the filesystem. Restart any running Gemini CLI instances after installing. See [docs/integrations/gemini.md](docs/integrations/gemini.md) for details.
+
+### Pi Coding Agent
+
+Install the status extension so amux can monitor Pi instances:
+
+```sh
+amux setup pi
+```
+
+This copies an extension to `~/.pi/agent/extensions/amux-status/` that reports agent status via the filesystem. Restart any running Pi instances after installing. See [docs/integrations/pi.md](docs/integrations/pi.md) for details.
 
 ## Tmux Integration
 

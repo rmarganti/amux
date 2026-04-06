@@ -80,7 +80,7 @@ Install the status plugin so amux can monitor OpenCode instances:
 amux setup opencode
 ```
 
-This copies a lightweight plugin to `~/.config/opencode/plugin/` that reports agent status via the filesystem. Restart any running OpenCode instances after installing. See [docs/integrations/opencode.md](docs/integrations/opencode.md) for details.
+This copies a lightweight plugin to `~/.config/opencode/plugins/` that reports agent status via the filesystem. Restart any running OpenCode instances after installing. See [docs/integrations/opencode.md](docs/integrations/opencode.md) for details.
 
 ### Gemini CLI
 

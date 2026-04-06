@@ -32,6 +32,10 @@ Status file format:
 
 Possible `status` values: `idle`, `busy`, `awaiting_input`, `errored`.
 
+Internally, OpenCode may emit `session.status` with `status.type: "retry"` while a
+session is still actively working. The amux plugin normalizes that to `busy` so
+these panes remain shown as running.
+
 ### Cleanup
 
 The plugin registers `process.on('exit')`, `SIGINT`, and `SIGTERM` handlers
@@ -52,7 +56,7 @@ PID is no longer alive (see the main README for details).
 
 | amux Status        | Plugin Signal                    |
 | ------------------ | -------------------------------- |
-| **Running**        | `status: "busy"`                 |
+| **Running**        | `status: "busy"` (including OpenCode `retry`) |
 | **Idle**           | `status: "idle"` or file missing |
 | **Awaiting Input** | `status: "awaiting_input"`       |
 | **Errored**        | `status: "errored"`              |
@@ -65,9 +69,10 @@ Install the plugin with:
 amux setup opencode
 ```
 
-This copies `amux-status.js` to `~/.config/opencode/plugin/`, which OpenCode
+This copies `amux-status.js` to `~/.config/opencode/plugins/`, which OpenCode
 auto-discovers on startup. The command is idempotent — it only overwrites the
-file when the plugin version has changed.
+file when the plugin version has changed. It also removes the legacy
+`~/.config/opencode/plugin/amux-status.js` path if present.
 
 ## Process Identification
 

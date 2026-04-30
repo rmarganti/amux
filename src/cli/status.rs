@@ -42,20 +42,26 @@ pub fn run() -> Result<(), AmuxError> {
     Ok(())
 }
 
-/// Format agent statuses as colored icons.
+/// Format agent statuses as colored icons with the tmux session name.
 ///
-/// Output example: `#[fg=green]● #[default]○ #[fg=yellow]⚠#[default]`
+/// Output example: `#[fg=green]●#[default] work #[default]○#[default] main`
 fn format_status_summary(instances: &[AgentInstance]) -> String {
     if instances.is_empty() {
         return String::new();
     }
 
-    let icons: Vec<String> = instances
+    let items: Vec<String> = instances
         .iter()
-        .map(|instance| status_to_icon(&instance.status).to_string())
+        .map(|instance| {
+            format!(
+                "{}#[default] {}",
+                status_to_icon(&instance.status),
+                instance.pane.session_name
+            )
+        })
         .collect();
 
-    icons.join(" ") + "#[default]"
+    items.join("  ")
 }
 
 /// Get the icon and color for a given agent status.
@@ -97,7 +103,7 @@ mod tests {
         ];
         assert_eq!(
             format_status_summary(&instances),
-            "#[fg=green]● #[fg=green]● #[default]○ #[fg=yellow]⚠ #[fg=red]✖#[default]"
+            "#[fg=green]●#[default] test  #[fg=green]●#[default] test  #[default]○#[default] test  #[fg=yellow]⚠#[default] test  #[fg=red]✖#[default] test"
         );
     }
 
@@ -110,7 +116,7 @@ mod tests {
         ];
         assert_eq!(
             format_status_summary(&instances),
-            "#[fg=green]● #[fg=green]● #[fg=green]●#[default]"
+            "#[fg=green]●#[default] test  #[fg=green]●#[default] test  #[fg=green]●#[default] test"
         );
     }
 
@@ -122,7 +128,7 @@ mod tests {
         ];
         assert_eq!(
             format_status_summary(&instances),
-            "#[fg=yellow]⚠ #[fg=yellow]⚠#[default]"
+            "#[fg=yellow]⚠#[default] test  #[fg=yellow]⚠#[default] test"
         );
     }
 
@@ -130,6 +136,25 @@ mod tests {
     fn test_format_status_summary_empty() {
         let instances: Vec<AgentInstance> = vec![];
         assert_eq!(format_status_summary(&instances), "");
+    }
+
+    #[test]
+    fn test_format_status_summary_includes_session_name() {
+        let instance = AgentInstance {
+            pane: PaneInfo {
+                session_name: "work".to_string(),
+                window_name: "0".to_string(),
+                pane_id: "%1".to_string(),
+                pane_pid: 0,
+            },
+            provider_name: "test",
+            status: AgentStatus::Idle,
+        };
+
+        assert_eq!(
+            format_status_summary(&[instance]),
+            "#[default]○#[default] work"
+        );
     }
 
     #[test]
@@ -141,7 +166,7 @@ mod tests {
         ];
         assert_eq!(
             format_status_summary(&instances),
-            "#[fg=green]● #[fg=red]✖ #[fg=red]✖#[default]"
+            "#[fg=green]●#[default] test  #[fg=red]✖#[default] test  #[fg=red]✖#[default] test"
         );
     }
 }

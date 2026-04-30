@@ -34,10 +34,10 @@ Options:
 
 ### `amux status`
 
-Outputs a terse summary with tmux format strings for statusline use.
+Outputs a terse summary with tmux format strings for statusline use, including each agent's tmux session name.
 
 ```
-#[fg=green]●2 #[fg=yellow]⚠1
+#[fg=green]●#[default] work  #[fg=yellow]⚠#[default] main
 ```
 
 Indicators: `●` running, `○` idle, `⚠` awaiting input, `✖` errored.

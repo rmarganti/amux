@@ -1,17 +1,17 @@
 // @i-know-the-amp-plugin-api-is-wip-and-very-experimental-right-now
-// amux-status v1.0
+// amux-status v1.1
 import type { PluginAPI } from '@ampcode/plugin'
 import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
 
-type Status = 'idle' | 'busy' | 'errored'
+type Status = 'idle' | 'running' | 'errored'
 
 function getStatusDir(): string {
     const xdgState =
         process.env.XDG_STATE_HOME ||
         path.join(os.homedir(), '.local', 'state')
-    return path.join(xdgState, 'amux', 'amp')
+    return path.join(xdgState, 'amux')
 }
 
 function getStatusFilePath(paneId: string): string {
@@ -22,6 +22,7 @@ function writeStatus(paneId: string, status: Status) {
     const dir = getStatusDir()
     fs.mkdirSync(dir, { recursive: true })
     const payload = JSON.stringify({
+        provider: 'amp',
         status,
         pid: process.pid,
         ts: Math.floor(Date.now() / 1000),
@@ -32,7 +33,8 @@ function writeStatus(paneId: string, status: Status) {
 function removeStatus(paneId: string) {
     const filePath = getStatusFilePath(paneId)
     try {
-        fs.unlinkSync(filePath)
+        const current = JSON.parse(fs.readFileSync(filePath, 'utf8'))
+        if (current.provider === 'amp') fs.unlinkSync(filePath)
     } catch (_) {}
 }
 
@@ -54,8 +56,8 @@ export default function (amp: PluginAPI) {
     amp.logger.log('[amux] plugin initialized', { paneId })
 
     amp.on('agent.start', (_event, ctx) => {
-        writeStatus(paneId, 'busy')
-        ctx.logger.log('[amux] status: busy (agent.start)')
+        writeStatus(paneId, 'running')
+        ctx.logger.log('[amux] status: running (agent.start)')
         return {};
     })
 

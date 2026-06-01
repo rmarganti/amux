@@ -8,7 +8,7 @@ amux monitors Gemini CLI agent instances running in tmux panes using a Gemini CL
 ┌──────────────────────────┐         ┌──────────────────────────────────────┐
 │  Gemini CLI process      │         │  amux                                │
 │                          │         │                                      │
-│  amux-status extension:  │         │  ~/.local/state/amux/gemini/         │
+│  amux-status extension:  │         │  ~/.local/state/amux/                │
 │    BeforeAgent ──────────│──write──▶  <pane_id>.json                      │
 │    AfterAgent  ──────────│──write──▶                                      │
 │    Notification ─────────│──write──▶  discover:                           │
@@ -19,20 +19,27 @@ amux monitors Gemini CLI agent instances running in tmux panes using a Gemini CL
 
 ### Extension
 
-The `amux-status` extension is installed at `~/.gemini/extensions/amux-status/` and hooks into Gemini CLI lifecycle events. On each state transition it writes a JSON status file to `$XDG_STATE_HOME/amux/gemini/<pane_id>.json` (defaulting to `~/.local/state/amux/gemini/`).
+The `amux-status` extension is installed at `~/.gemini/extensions/amux-status/`
+and hooks into Gemini CLI lifecycle events. On each state transition it writes
+a JSON status file to `$XDG_STATE_HOME/amux/<pane_id>.json` (defaulting to
+`~/.local/state/amux/`).
 
 Status file format:
 
 ```json
-{ "status": "idle", "pid": 12345, "ts": 1710000000 }
+{ "provider": "gemini", "status": "idle", "pid": 12345, "ts": 1710000000 }
 ```
 
-Possible `status` values: `idle`, `busy`, `awaiting_input`.
+Possible `status` values: `idle`, `running`, `awaiting_input`.
+
+The `provider` field identifies which detected agent owns the pane. If more
+than one provider is detected in the same pane, amux trusts this field and
+ignores non-matching detections.
 
 ### Discovery
 
 1. For each tmux pane, walk the process tree from `pane_pid` to find a Gemini CLI process (either a `gemini` binary or `node` running a `gemini` script).
-2. Read the corresponding status file at `~/.local/state/amux/gemini/<pane_id>.json`.
+2. Read the corresponding status file at `~/.local/state/amux/<pane_id>.json`.
 3. If the file is missing or stale (timestamp older than 30 s with no matching live PID), fall back to `idle`.
 
 ### Status Mapping

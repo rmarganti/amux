@@ -49,6 +49,8 @@ pub fn run(status_filter: Option<AgentStatus>, plain: bool) -> Result<(), AmuxEr
         Ok::<(), AmuxError>(())
     })?;
 
+    instances = agent::enrich_detected_statuses(instances);
+
     if let Some(filter) = status_filter {
         instances.retain(|inst| inst.status == filter);
     }

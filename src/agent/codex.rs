@@ -1,21 +1,10 @@
 use crate::agent::process_table::ProcessTable;
-use crate::agent::status_file;
 use crate::agent::{AgentInstance, AgentProvider, AgentStatus};
 use crate::error::AmuxError;
 use crate::tmux::PaneInfo;
 
 /// Agent provider for Codex CLI instances.
 pub struct CodexProvider;
-
-fn map_codex_status(status: &str) -> Option<AgentStatus> {
-    match status {
-        "busy" | "running" => Some(AgentStatus::Running),
-        "idle" => Some(AgentStatus::Idle),
-        "awaiting_input" => Some(AgentStatus::AwaitingInput),
-        "errored" => Some(AgentStatus::Errored),
-        _ => None,
-    }
-}
 
 fn is_codex_process(comm: &str, args: &str) -> bool {
     comm == "codex"
@@ -48,13 +37,10 @@ impl AgentProvider for CodexProvider {
                 continue;
             }
 
-            let status = status_file::read_status_file("codex", &pane.pane_id, map_codex_status)
-                .unwrap_or(AgentStatus::Idle);
-
             instances.push(AgentInstance {
                 pane: pane.clone(),
                 provider_name: self.name(),
-                status,
+                status: AgentStatus::Idle,
             });
         }
 
@@ -64,20 +50,7 @@ impl AgentProvider for CodexProvider {
 
 #[cfg(test)]
 mod tests {
-    use super::{is_codex_process, map_codex_status};
-    use crate::agent::AgentStatus;
-
-    #[test]
-    fn maps_codex_statuses() {
-        assert_eq!(map_codex_status("busy"), Some(AgentStatus::Running));
-        assert_eq!(map_codex_status("running"), Some(AgentStatus::Running));
-        assert_eq!(map_codex_status("idle"), Some(AgentStatus::Idle));
-        assert_eq!(
-            map_codex_status("awaiting_input"),
-            Some(AgentStatus::AwaitingInput)
-        );
-        assert_eq!(map_codex_status("errored"), Some(AgentStatus::Errored));
-    }
+    use super::is_codex_process;
 
     #[test]
     fn detects_codex_process_names_and_paths() {

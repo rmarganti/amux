@@ -1,5 +1,4 @@
 use crate::agent::process_table::ProcessTable;
-use crate::agent::status_file;
 use crate::agent::{AgentInstance, AgentProvider, AgentStatus};
 use crate::error::AmuxError;
 use crate::tmux::PaneInfo;
@@ -37,18 +36,10 @@ impl AgentProvider for GeminiProvider {
                 continue;
             }
 
-            let status = status_file::read_status_file("gemini", &pane.pane_id, |s| match s {
-                "busy" => Some(AgentStatus::Running),
-                "idle" => Some(AgentStatus::Idle),
-                "awaiting_input" => Some(AgentStatus::AwaitingInput),
-                _ => None,
-            })
-            .unwrap_or(AgentStatus::Idle);
-
             instances.push(AgentInstance {
                 pane: pane.clone(),
                 provider_name: self.name(),
-                status,
+                status: AgentStatus::Idle,
             });
         }
 

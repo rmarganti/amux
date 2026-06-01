@@ -40,7 +40,7 @@ impl std::fmt::Display for AgentStatus {
 }
 
 /// A discovered agent instance tied to a specific tmux pane.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AgentInstance {
     pub pane: PaneInfo,
     pub provider_name: &'static str,
@@ -72,4 +72,47 @@ pub fn all_providers() -> Vec<Box<dyn AgentProvider>> {
         Box::new(opencode::OpenCodeProvider),
         Box::new(pi::PiProvider),
     ]
+}
+
+/// Attach statuses from the shared per-pane status file and de-duplicate panes.
+///
+/// Provider discovery is intentionally detection-only. This post-detection pass
+/// reads at most one status file per pane. If a pane was detected by multiple
+/// providers and the status file names one of them, that provider wins and all
+/// non-matching detections are ignored. Missing, stale, or invalid files fall
+/// back to the first detection with `Idle` status.
+pub fn enrich_detected_statuses(instances: Vec<AgentInstance>) -> Vec<AgentInstance> {
+    use std::collections::HashSet;
+
+    let mut output = Vec::new();
+    let mut seen_panes = HashSet::new();
+
+    for instance in &instances {
+        if !seen_panes.insert(instance.pane.pane_id.clone()) {
+            continue;
+        }
+
+        let detections: Vec<&AgentInstance> = instances
+            .iter()
+            .filter(|candidate| candidate.pane.pane_id == instance.pane.pane_id)
+            .collect();
+
+        if let Some(status_file) = status_file::read_status_file(&instance.pane.pane_id)
+            && let Some(matching) = detections
+                .iter()
+                .find(|candidate| candidate.provider_name == status_file.provider.as_str())
+            && let Some(status) = status_file::normalized_status(&status_file.status)
+        {
+            let mut enriched = (*matching).clone();
+            enriched.status = status;
+            output.push(enriched);
+            continue;
+        }
+
+        let mut fallback = instance.clone();
+        fallback.status = AgentStatus::Idle;
+        output.push(fallback);
+    }
+
+    output
 }

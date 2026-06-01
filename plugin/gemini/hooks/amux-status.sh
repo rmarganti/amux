@@ -1,5 +1,5 @@
 #!/bin/sh
-# amux-status v1.0 — Gemini CLI extension hook
+# amux-status v1.1 — Gemini CLI extension hook
 # Writes agent status files for amux. No stdout (Gemini CLI hook protocol).
 
 # No-op outside tmux.
@@ -12,12 +12,14 @@ input=$(cat)
 hook_event_name=$(printf '%s' "$input" | grep -o '"hook_event_name" *: *"[^"]*"' | sed 's/.*: *"//;s/"//')
 
 # Determine status directory.
-status_dir="${XDG_STATE_HOME:-$HOME/.local/state}/amux/gemini"
+status_dir="${XDG_STATE_HOME:-$HOME/.local/state}/amux"
 status_file="$status_dir/$TMUX_PANE.json"
 
 # SessionEnd: remove status file and exit.
 if [ "$hook_event_name" = "SessionEnd" ]; then
-    rm -f "$status_file"
+    if grep -q '"provider"[[:space:]]*:[[:space:]]*"gemini"' "$status_file" 2>/dev/null; then
+        rm -f "$status_file"
+    fi
     exit 0
 fi
 
@@ -25,7 +27,7 @@ fi
 status=""
 case "$hook_event_name" in
     BeforeAgent)
-        status="busy"
+        status="running"
         ;;
     AfterAgent)
         status="idle"
@@ -44,6 +46,6 @@ esac
 # Write status file.
 mkdir -p "$status_dir"
 ts=$(date +%s)
-printf '{"status":"%s","pid":%d,"ts":%d}' "$status" "$PPID" "$ts" > "$status_file"
+printf '{"provider":"gemini","status":"%s","pid":%d,"ts":%d}' "$status" "$PPID" "$ts" > "$status_file"
 
 exit 0

@@ -9,7 +9,7 @@ lightweight plugin that runs inside the OpenCode process.
 ┌──────────────────────┐         ┌──────────────────────────────────────┐
 │  OpenCode process    │         │  amux                                │
 │                      │         │                                      │
-│  amux-status plugin  │──write──▶  ~/.local/state/amux/opencode/       │
+│  amux-status plugin  │──write──▶  ~/.local/state/amux/                │
 │  (hooks into events) │         │  <pane_id>.json                      │
 └──────────────────────┘         │                                      │
                                  │  discover:                           │
@@ -21,19 +21,23 @@ lightweight plugin that runs inside the OpenCode process.
 ### Plugin
 
 The `amux-status.js` plugin runs inside OpenCode and listens for session and permission events.
-On each state transition it writes a JSON status file to `$XDG_STATE_HOME/amux/opencode/<pane_id>.json`
-(defaulting to `~/.local/state/amux/opencode/`).
+On each state transition it writes a JSON status file to `$XDG_STATE_HOME/amux/<pane_id>.json`
+(defaulting to `~/.local/state/amux/`).
 
 Status file format:
 
 ```json
-{ "status": "idle", "pid": 12345, "ts": 1710000000 }
+{ "provider": "opencode", "status": "idle", "pid": 12345, "ts": 1710000000 }
 ```
 
-Possible `status` values: `idle`, `busy`, `awaiting_input`, `errored`.
+Possible `status` values: `idle`, `running`, `awaiting_input`, `errored`.
+
+The `provider` field identifies which detected agent owns the pane. If more
+than one provider is detected in the same pane, amux trusts this field and
+ignores non-matching detections.
 
 Internally, OpenCode may emit `session.status` with `status.type: "retry"` while a
-session is still actively working. The amux plugin normalizes that to `busy` so
+session is still actively working. The amux plugin normalizes that to `running` so
 these panes remain shown as running.
 
 ### Cleanup
@@ -49,14 +53,14 @@ PID is no longer alive (see the main README for details).
 ### Discovery
 
 1. For each tmux pane, walk the process tree from `pane_pid` to find a child process named `opencode`.
-2. Read the corresponding status file at `~/.local/state/amux/opencode/<pane_id>.json`.
+2. Read the corresponding status file at `~/.local/state/amux/<pane_id>.json`.
 3. If the file is missing or stale (timestamp older than 30 s with no matching live PID), fall back to `idle`.
 
 ### Status Mapping
 
 | amux Status        | Plugin Signal                    |
 | ------------------ | -------------------------------- |
-| **Running**        | `status: "busy"` (including OpenCode `retry`) |
+| **Running**        | `status: "running"` (including OpenCode `retry`) |
 | **Idle**           | `status: "idle"` or file missing |
 | **Awaiting Input** | `status: "awaiting_input"`       |
 | **Errored**        | `status: "errored"`              |

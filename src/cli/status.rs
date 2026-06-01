@@ -37,6 +37,8 @@ pub fn run() -> Result<(), AmuxError> {
         }
     });
 
+    instances = agent::enrich_detected_statuses(instances);
+
     print!("{}", format_status_summary(&instances));
 
     Ok(())

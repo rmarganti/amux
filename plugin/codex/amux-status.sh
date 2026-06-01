@@ -1,5 +1,5 @@
 #!/bin/sh
-# amux-status v1.3 — Codex CLI hook
+# amux-status v1.4 — Codex CLI hook
 # Writes agent status files for amux. No stdout (Codex hook protocol).
 
 # No-op outside tmux.
@@ -19,7 +19,7 @@ if [ -z "$hook_event_name" ]; then
     hook_event_name=$(printf '%s' "$input" | grep -oE '"type"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/.*: *"//;s/"//')
 fi
 
-status_dir="${XDG_STATE_HOME:-$HOME/.local/state}/amux/codex"
+status_dir="${XDG_STATE_HOME:-$HOME/.local/state}/amux"
 status_file="$status_dir/$TMUX_PANE.json"
 
 status=""
@@ -28,7 +28,7 @@ case "$hook_event_name" in
         status="idle"
         ;;
     UserPromptSubmit|PreToolUse|PostToolUse|SubagentStart|SubagentStop|Start|task_started)
-        status="busy"
+        status="running"
         ;;
     Stop|agent-turn-complete|task_complete)
         status="idle"
@@ -66,6 +66,6 @@ mkdir -p "$status_dir"
 ts=$(date +%s)
 agent_pid=$(find_codex_pid)
 # Include the raw event for debugging; amux ignores unknown JSON fields.
-printf '{"status":"%s","pid":%d,"ts":%d,"event":"%s"}' "$status" "$agent_pid" "$ts" "$hook_event_name" > "$status_file"
+printf '{"provider":"codex","status":"%s","pid":%d,"ts":%d,"event":"%s"}' "$status" "$agent_pid" "$ts" "$hook_event_name" > "$status_file"
 
 exit 0

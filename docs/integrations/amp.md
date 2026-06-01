@@ -9,7 +9,7 @@ lightweight plugin that runs inside the Amp process.
 ┌──────────────────────┐         ┌──────────────────────────────────────┐
 │  Amp process         │         │  amux                                │
 │                      │         │                                      │
-│  amux-status plugin  │──write──▶  ~/.local/state/amux/amp/            │
+│  amux-status plugin  │──write──▶  ~/.local/state/amux/                │
 │  (hooks into events) │         │  <pane_id>.json                      │
 └──────────────────────┘         │                                      │
                                  │  discover:                           │
@@ -20,18 +20,21 @@ lightweight plugin that runs inside the Amp process.
 
 ### Plugin
 
-The `amux-status.ts` plugin runs inside Amp and listens for agent lifecycle
-and tool events. On each state transition it writes a JSON status file to
-`$XDG_STATE_HOME/amux/amp/<pane_id>.json` (defaulting to
-`~/.local/state/amux/amp/`).
+The `amux-status.ts` plugin runs inside Amp and listens for agent lifecycle and
+tool events. On each state transition it writes a JSON status file to
+`$XDG_STATE_HOME/amux/<pane_id>.json` (defaulting to `~/.local/state/amux/`).
 
 Status file format:
 
 ```json
-{ "status": "idle", "pid": 12345, "ts": 1710000000 }
+{ "provider": "amp", "status": "idle", "pid": 12345, "ts": 1710000000 }
 ```
 
-Possible `status` values: `idle`, `busy`, `errored`.
+Possible `status` values: `idle`, `running`, `errored`.
+
+The `provider` field identifies which detected agent owns the pane. If more
+than one provider is detected in the same pane, amux trusts this field and
+ignores non-matching detections.
 
 ### Cleanup
 
@@ -46,16 +49,16 @@ PID is no longer alive (see the main README for details).
 ### Discovery
 
 1. For each tmux pane, walk the process tree from `pane_pid` to find a child process named `amp`.
-2. Read the corresponding status file at `~/.local/state/amux/amp/<pane_id>.json`.
+2. Read the corresponding status file at `~/.local/state/amux/<pane_id>.json`.
 3. If the file is missing or stale (timestamp older than 30 s with no matching live PID), fall back to `idle`.
 
 ### Status Mapping
 
-| amux Status        | Plugin Signal                                   |
-| ------------------ | ----------------------------------------------- |
-| **Running**        | `status: "busy"` (`agent.start`)                |
-| **Idle**           | `status: "idle"` or file missing                |
-| **Errored**        | `status: "errored"` (`agent.end` with error)    |
+| amux Status | Plugin Signal                                |
+| ----------- | -------------------------------------------- |
+| **Running** | `status: "running"` (`agent.start`)          |
+| **Idle**    | `status: "idle"` or file missing             |
+| **Errored** | `status: "errored"` (`agent.end` with error) |
 
 ## Setup
 

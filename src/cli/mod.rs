@@ -1,5 +1,6 @@
 pub mod list;
 pub mod setup_amp;
+pub mod setup_codex;
 pub mod setup_gemini;
 pub mod setup_opencode;
 pub mod setup_pi;
@@ -42,6 +43,8 @@ pub enum Command {
 pub enum SetupTarget {
     /// Install the amux status plugin for Amp
     Amp,
+    /// Install the amux status hook for Codex CLI
+    Codex,
     /// Install the amux status extension for Gemini CLI
     Gemini,
     /// Install the amux status plugin for OpenCode

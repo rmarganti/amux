@@ -1,4 +1,5 @@
 pub mod amp;
+pub mod codex;
 pub mod gemini;
 pub mod opencode;
 pub mod pi;
@@ -66,6 +67,7 @@ pub trait AgentProvider: Send + Sync {
 pub fn all_providers() -> Vec<Box<dyn AgentProvider>> {
     vec![
         Box::new(amp::AmpProvider),
+        Box::new(codex::CodexProvider),
         Box::new(gemini::GeminiProvider),
         Box::new(opencode::OpenCodeProvider),
         Box::new(pi::PiProvider),

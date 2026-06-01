@@ -72,6 +72,16 @@ PLUGINS=all amp
 
 Restart any running Amp instances after installing. See [docs/integrations/amp.md](docs/integrations/amp.md) for details.
 
+### Codex CLI
+
+Install the status hook so amux can monitor Codex CLI instances:
+
+```sh
+amux setup codex
+```
+
+This installs `~/.codex/hooks/amux-status.sh` and merges amux entries into `~/.codex/hooks.json` while preserving existing hooks. Restart any running Codex instances after installing. See [docs/integrations/codex.md](docs/integrations/codex.md) for details.
+
 ### OpenCode
 
 Install the status plugin so amux can monitor OpenCode instances:

@@ -97,18 +97,16 @@ pub fn enrich_detected_statuses(instances: Vec<AgentInstance>) -> Vec<AgentInsta
             .filter(|candidate| candidate.pane.pane_id == instance.pane.pane_id)
             .collect();
 
-        if let Some(status_file) = status_file::read_status_file(&instance.pane.pane_id) {
-            if let Some(matching) = detections
+        if let Some(status_file) = status_file::read_status_file(&instance.pane.pane_id)
+            && let Some(matching) = detections
                 .iter()
                 .find(|candidate| candidate.provider_name == status_file.provider.as_str())
-            {
-                if let Some(status) = status_file::normalized_status(&status_file.status) {
-                    let mut enriched = (*matching).clone();
-                    enriched.status = status;
-                    output.push(enriched);
-                    continue;
-                }
-            }
+            && let Some(status) = status_file::normalized_status(&status_file.status)
+        {
+            let mut enriched = (*matching).clone();
+            enriched.status = status;
+            output.push(enriched);
+            continue;
         }
 
         let mut fallback = instance.clone();

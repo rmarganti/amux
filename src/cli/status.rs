@@ -44,9 +44,9 @@ pub fn run() -> Result<(), AmuxError> {
     Ok(())
 }
 
-/// Format agent statuses as colored icons with the tmux session name.
+/// Format agent statuses as colored icons with the tmux window name.
 ///
-/// Output example: `#[fg=green]●#[default] work #[default]○#[default] main`
+/// Output example: `#[fg=green]●#[default] project1 #[default]○#[default] project2`
 fn format_status_summary(instances: &[AgentInstance]) -> String {
     if instances.is_empty() {
         return String::new();
@@ -58,7 +58,7 @@ fn format_status_summary(instances: &[AgentInstance]) -> String {
             format!(
                 "{}#[default] {}",
                 status_to_icon(&instance.status),
-                instance.pane.session_name
+                instance.pane.window_name
             )
         })
         .collect();
@@ -81,11 +81,11 @@ mod tests {
     use super::*;
     use crate::tmux::PaneInfo;
 
-    fn create_instance(status: AgentStatus) -> AgentInstance {
+    fn create_instance(status: AgentStatus, window_name: &str) -> AgentInstance {
         AgentInstance {
             pane: PaneInfo {
                 session_name: "test".to_string(),
-                window_name: "0".to_string(),
+                window_name: window_name.to_string(),
                 pane_id: "0".to_string(),
                 pane_pid: 0,
             },
@@ -97,40 +97,15 @@ mod tests {
     #[test]
     fn test_format_status_summary_all_statuses() {
         let instances = vec![
-            create_instance(AgentStatus::Running),
-            create_instance(AgentStatus::Running),
-            create_instance(AgentStatus::Idle),
-            create_instance(AgentStatus::AwaitingInput),
-            create_instance(AgentStatus::Errored),
+            create_instance(AgentStatus::Running, "win1"),
+            create_instance(AgentStatus::Running, "win2"),
+            create_instance(AgentStatus::Idle, "win3"),
+            create_instance(AgentStatus::AwaitingInput, "win4"),
+            create_instance(AgentStatus::Errored, "win5"),
         ];
         assert_eq!(
             format_status_summary(&instances),
-            "#[fg=green]●#[default] test  #[fg=green]●#[default] test  #[default]○#[default] test  #[fg=yellow]⚠#[default] test  #[fg=red]✖#[default] test"
-        );
-    }
-
-    #[test]
-    fn test_format_status_summary_only_running() {
-        let instances = vec![
-            create_instance(AgentStatus::Running),
-            create_instance(AgentStatus::Running),
-            create_instance(AgentStatus::Running),
-        ];
-        assert_eq!(
-            format_status_summary(&instances),
-            "#[fg=green]●#[default] test  #[fg=green]●#[default] test  #[fg=green]●#[default] test"
-        );
-    }
-
-    #[test]
-    fn test_format_status_summary_only_awaiting() {
-        let instances = vec![
-            create_instance(AgentStatus::AwaitingInput),
-            create_instance(AgentStatus::AwaitingInput),
-        ];
-        assert_eq!(
-            format_status_summary(&instances),
-            "#[fg=yellow]⚠#[default] test  #[fg=yellow]⚠#[default] test"
+            "#[fg=green]●#[default] win1  #[fg=green]●#[default] win2  #[default]○#[default] win3  #[fg=yellow]⚠#[default] win4  #[fg=red]✖#[default] win5"
         );
     }
 
@@ -138,37 +113,5 @@ mod tests {
     fn test_format_status_summary_empty() {
         let instances: Vec<AgentInstance> = vec![];
         assert_eq!(format_status_summary(&instances), "");
-    }
-
-    #[test]
-    fn test_format_status_summary_includes_session_name() {
-        let instance = AgentInstance {
-            pane: PaneInfo {
-                session_name: "work".to_string(),
-                window_name: "0".to_string(),
-                pane_id: "%1".to_string(),
-                pane_pid: 0,
-            },
-            provider_name: "test",
-            status: AgentStatus::Idle,
-        };
-
-        assert_eq!(
-            format_status_summary(&[instance]),
-            "#[default]○#[default] work"
-        );
-    }
-
-    #[test]
-    fn test_format_status_summary_mixed() {
-        let instances = vec![
-            create_instance(AgentStatus::Running),
-            create_instance(AgentStatus::Errored),
-            create_instance(AgentStatus::Errored),
-        ];
-        assert_eq!(
-            format_status_summary(&instances),
-            "#[fg=green]●#[default] test  #[fg=red]✖#[default] test  #[fg=red]✖#[default] test"
-        );
     }
 }

@@ -9,7 +9,9 @@ const HOOKS_JSON: &str = include_str!("../../plugin/gemini/hooks/hooks.json");
 const HOOK_SCRIPT: &str = include_str!("../../plugin/gemini/hooks/amux-status.sh");
 
 fn version_from_content(content: &str) -> Option<&str> {
-    content.lines().next()?.strip_prefix("# amux-status ")
+    content
+        .lines()
+        .find_map(|line| line.strip_prefix("# amux-status "))
 }
 
 fn extension_dir() -> Result<PathBuf, AmuxError> {
@@ -50,4 +52,17 @@ pub fn run() -> Result<(), AmuxError> {
     println!("Gemini CLI extension installed at {}", dir.display());
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::version_from_content;
+
+    #[test]
+    fn parses_version_from_shebang_script() {
+        assert_eq!(
+            version_from_content("#!/bin/sh\n# amux-status v1.1\n"),
+            Some("v1.1")
+        );
+    }
 }
